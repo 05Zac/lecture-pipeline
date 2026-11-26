@@ -1,0 +1,21 @@
+# personal config (timetable, paths)
+config.json
+
+# runtime files
+transcriber.log
+*.log
+.transcribed.json
+
+# recordings and transcripts, never commit lecture content
+*.flac
+*.wav
+*.mp3
+*.m4a
+_Recordings/
+Lectures/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

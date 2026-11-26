@@ -1,0 +1,42 @@
+{
+  "vault_dir": "C:\\Users\\YOU\\My Drive\\ObsidianVault",
+  "recordings_subdir": "_Recordings",
+  "lectures_subdir": "Lectures",
+
+  "courses": {
+    "ECO101": "ECO101 Principles of Economics",
+    "FIN201": "FIN201 Corporate Finance",
+    "STA210": "STA210 Business Statistics"
+  },
+
+  "timetable": [
+    {"day": "Mon", "start": "09:00", "end": "11:00", "course": "FIN201", "session": "Lecture",  "mode": "Online"},
+    {"day": "Mon", "start": "11:00", "end": "12:00", "course": "FIN201", "session": "Tutorial", "mode": "Physical"},
+    {"day": "Tue", "start": "14:00", "end": "16:00", "course": "ECO101", "session": "Lecture",  "mode": "Physical"},
+    {"day": "Wed", "start": "10:00", "end": "11:00", "course": "ECO101", "session": "Tutorial", "mode": "Physical"},
+    {"day": "Thu", "start": "16:00", "end": "18:00", "course": "STA210", "session": "Lecture",  "mode": "Online"},
+    {"day": "Fri", "start": "08:00", "end": "09:00", "course": "STA210", "session": "Workshop", "mode": "Physical"}
+  ],
+
+  "recorder": {
+    "online_only": false,
+    "preferred_mics": ["external", "headset", "usb"],
+    "sample_rate": 16000,
+    "early_minutes": 20,
+    "auto_stop_after_end": 15
+  },
+
+  "transcriber": {
+    "model": "large-v3",
+    "device": "cuda",
+    "compute_type": "float16",
+    "language": "en",
+    "poll_seconds": 30,
+    "paragraph_seconds": 60,
+    "hotwords": "NPV, IRR, WACC, CAPM, OLS, GDP",
+    "slides_subdir": "Slides",
+    "slide_terms": 30,
+    "corrections_note": "Transcript corrections.md",
+    "vocab_hint": "University lecture. Terms: NPV, IRR, WACC, CAPM, beta, regression, OLS, p-value, t-statistic, R-squared, elasticity, GDP, inflation."
+  }
+}
