@@ -65,7 +65,7 @@ tags: [transcript]
 
 1. Clone the repo on both machines and copy the config:
    ```
-   git clone https://github.com/<you>/lecture-pipeline.git
+   git clone https://github.com/05Zac/lecture-pipeline.git
    cd lecture-pipeline
    copy config.example.json config.json
    ```
