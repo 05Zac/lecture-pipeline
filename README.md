@@ -32,6 +32,7 @@ Record your classes on a laptop, transcribe them for free on your desktop's GPU,
 **Transcriber (`lecture_transcriber.py`)**
 - Polls the recordings folder and waits until the recorder's `.json` has arrived and the audio has finished syncing. A sync tool uploads a recording that is still growing in bursts, so a stable size alone isn't proof the recording is done. Audio files you add by hand, with no `.json`, are picked up once they've been unchanged for 15 minutes.
 - Transcribes with [faster-whisper](https://github.com/SYSTRAN/faster-whisper) `large-v3` at float16. It fits in 8 GB of VRAM, and a 2-hour lecture takes about 5 to 10 minutes on an RTX 4060.
+- Loads the model only when a recording is ready and frees the GPU after the batch, so games and other apps get the VRAM while it waits. Set `"keep_model_loaded": true` to keep it in memory instead.
 - Uses VAD to skip silence, and a vocabulary hint so course terms like WACC or heteroskedasticity come out right.
 - Writes one Markdown note per recording, with ~60 s timestamped paragraphs and frontmatter you can query with Dataview.
 - Remembers finished files in `_Recordings/.transcribed.json`, so restarting is safe.

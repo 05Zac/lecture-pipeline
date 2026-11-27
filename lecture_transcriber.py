@@ -13,6 +13,7 @@ Run once and exit:  python lecture_transcriber.py --once
 """
 
 import argparse
+import gc
 import json
 import os
 import re
@@ -237,9 +238,17 @@ def main():
 
     model_name = tc.get("model", "large-v3")
     device = tc.get("device", "cuda")
-    print(f"Loading {model_name} on {device} (first run downloads the model) ...", flush=True)
-    model = WhisperModel(model_name, device=device, compute_type=tc.get("compute_type", "float16"))
-    print(f"Watching {cfg.recordings_dir}  (Ctrl+C to stop)", flush=True)
+    compute_type = tc.get("compute_type", "float16")
+    # By default the model is loaded only when a recording is ready and freed after the
+    # batch, so the GPU's memory is free for games and other apps the rest of the time.
+    keep_loaded = tc.get("keep_model_loaded", False)
+
+    def load_model():
+        print(f"[{datetime.now():%H:%M}] Loading {model_name} on {device} (first run downloads the model) ...", flush=True)
+        return WhisperModel(model_name, device=device, compute_type=compute_type)
+
+    model = load_model() if keep_loaded else None
+    print(f"Watching {cfg.recordings_dir}  ({'model stays loaded' if keep_loaded else 'model loads on demand'}, Ctrl+C to stop)", flush=True)
 
     state = State(cfg.recordings_dir / ".transcribed.json")
     sizes = {}
@@ -247,6 +256,8 @@ def main():
     first = True
     while True:
         ready = find_ready_files(cfg.recordings_dir, state.done, sizes)
+        if ready and model is None:
+            model = load_model()
         for audio in ready:
             key = audio.relative_to(cfg.recordings_dir).as_posix()
             try:
@@ -255,6 +266,10 @@ def main():
             except Exception as e:
                 print(f"    FAILED on {audio.name}: {e}  (will retry next round)", flush=True)
                 sizes.pop(key, None)
+        if ready and not keep_loaded:
+            model = None
+            gc.collect()
+            print(f"[{datetime.now():%H:%M}] Model unloaded, GPU memory freed", flush=True)
         if args.once and not first:
             break
         first = False

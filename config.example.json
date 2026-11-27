@@ -34,6 +34,7 @@
     "model": "large-v3",
     "device": "cuda",
     "compute_type": "float16",
+    "keep_model_loaded": false,
     "language": "en",
     "poll_seconds": 30,
     "paragraph_seconds": 60,
