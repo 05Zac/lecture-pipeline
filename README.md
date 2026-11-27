@@ -27,7 +27,11 @@ Record your classes on a laptop, transcribe them for free on your desktop's GPU,
 - Writes a `.json` sidecar with the course, session, mode, date, start and end time (to the second), length and audio level.
 - `--online-only` mode is for a desktop that only joins online classes.
 - Before recording a timetable class it shows which class it picked and counts down 5 seconds; press M to pick a different one (for a replacement class) or Enter to start now.
-- Shows a live wave of the input level while it records, with a pixel-art cat beside it that runs when it hears speech, plods along when the sound is faint and falls asleep when the input is silent (`--test` or `Test mic.bat` shows it without recording), so you can see the mic is working.
+- Shows a live wave of the input level while it records, with a pixel-art kitten beside it so you can tell at a glance whether the mic is working. `--test` or `Test mic.bat` shows it without recording.
+
+  <img src="docs/kitten.gif" alt="Pixel kitten: pops out of a box, runs while it hears speech, plods when the sound is faint, falls asleep when the input is silent, then hops back in the box" width="208">
+
+  It pops out of a box when recording starts, runs while it hears the lecturer, plods along tired when the sound is faint, and curls up asleep when the input goes silent. When you stop, it hops back into the box. Set `"cat": false` under `recorder` in `config.json` for a plain meter. To rebuild the GIF after editing the sprites, run `python tools/make_kitten_gif.py`.
 - Warns you if nothing is being recorded. Ten seconds in it says whether it can hear sound. If a physical class stays near silent for 30 seconds (5 minutes for online), it prints a warning, changes the window title and flashes the taskbar button, and it says whether the plug looks loose. The per-minute progress line shows the level: speech in a classroom is about -45 to -25 dB, and a dead input is -65 or lower.
 
 **Transcriber (`lecture_transcriber.py`)**

@@ -91,6 +91,7 @@ def pick_mic(sc, preferred):
 
 
 SILENT_DB = -58   # default; override with recorder.silent_db
+SHOW_CAT = True   # default; override with recorder.cat (false = no pixel kitten)
 
 
 def to_db(chunk) -> float:
@@ -1351,7 +1352,7 @@ class LiveMeter:
             braille = False
         self.fancy = tty and braille
         self.pie = PIE if can_print(PIE) else PIE_ASCII
-        self.cat = self.fancy and can_print("\u2588\u2580\u2584")   # pixel cat needs block characters
+        self.cat = SHOW_CAT and self.fancy and can_print("\u2588\u2580\u2584")   # pixel cat needs block characters
         self.tick = 0
         self.cat_mood, self.cat_queue = None, []         # current mood, transition frames to play
         if self.cat:                                      # start: pops out of its box
@@ -1551,6 +1552,8 @@ def main():
     preferred = rc.get("preferred_mics", ["external", "headset", "usb"])
     silent_db = rc.get("silent_db", SILENT_DB)
     beep = rc.get("beep_on_silence", False)
+    global SHOW_CAT
+    SHOW_CAT = rc.get("cat", True)
 
     import numpy as np
     import soundcard as sc

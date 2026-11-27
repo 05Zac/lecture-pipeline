@@ -27,7 +27,8 @@
     "silent_db": -58,
     "silent_window": 30,
     "silent_window_online": 300,
-    "beep_on_silence": false
+    "beep_on_silence": false,
+    "cat": true
   },
 
   "transcriber": {
