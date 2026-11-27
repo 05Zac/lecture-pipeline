@@ -259,14 +259,11 @@ class LiveMeter:
         loud = max(self.dbs[-32:])                               # loudest of the last ~2 s (16 cols/s)
         status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
         paint = (lambda s: f"\033[{col}m{s}\033[0m") if self.color else (lambda s: s)
-        spin, erase = elapsed % 1, int(elapsed) % 2 == 1      # one turn of the clock per second
         dot = "\033[31m\u25cf\033[0m " if self.color and self.fancy else ""
         head = f"  {dot}{self.label} {fmt_elapsed(elapsed)}   {loud:4.0f} dB  {paint(status)}"
 
         if self.fancy:
-            blue = (lambda s: f"\033[36m{s}\033[0m") if self.color else (lambda s: s)
-            wave, clock = self._rows(), clock_rows(spin, self.ROWS, erase)
-            self._draw([head] + ["  " + paint(w) + "    " + blue(c) for w, c in zip(wave, clock)])
+            self._draw([head] + ["  " + paint(r) for r in self._rows()])
         else:
             chars = " .:-=+*#@"
             bars = "".join(chars[round(v * (len(chars) - 1))] for v in self.view()[-self.width:])
@@ -325,11 +322,26 @@ def confirm_class(cls, name, seconds=5):
     if sys.platform != "win32" or not sys.stdin.isatty():
         return True
     import msvcrt
-    deadline = time.time() + seconds
+    big = sys.stdout.isatty() and can_print("\u28ff")          # braille clock, else one line
+    if big:
+        os.system("")                                          # ANSI cursor moves in the Windows console
+    drawn = 0
+    begin = time.time()
+    deadline = begin + seconds
     while time.time() < deadline:
-        left = max(1, int(deadline - time.time() + 0.999))   # round up: 5, 4, 3, 2, 1
-        circle = pie(1 - (deadline - time.time()) / seconds, PIE if can_print(PIE) else PIE_ASCII)
-        sys.stdout.write(f"\r  {circle} Starting in {left} s   [M] different class   [Enter] start now ")
+        now = time.time()
+        left = max(1, int(deadline - now + 0.999))             # round up: 5, 4, 3, 2, 1
+        if big:
+            spent = now - begin                                # one turn of the clock per second
+            clock = clock_rows(spent % 1, 6, erase=int(spent) % 2 == 1)
+            side = ["", f"Starting in {left} s", "", "[M]     different class", "[Enter] start now", ""]
+            lines = [f"     \033[36m{c}\033[0m     {s}" for c, s in zip(clock, side)]
+            up = f"\033[{drawn - 1}A" if drawn > 1 else ""
+            sys.stdout.write(up + "\r" + "\n".join(line + "\033[K" for line in lines))
+            drawn = len(lines)
+        else:
+            circle = pie(1 - (deadline - now) / seconds, PIE if can_print(PIE) else PIE_ASCII)
+            sys.stdout.write(f"\r  {circle} Starting in {left} s   [M] different class   [Enter] start now ")
         sys.stdout.flush()
         while msvcrt.kbhit():
             key = msvcrt.getwch()
@@ -338,7 +350,7 @@ def confirm_class(cls, name, seconds=5):
                 return False
             if key in "\r\n ":
                 deadline = 0
-        time.sleep(0.05)
+        time.sleep(0.03)
     print()
     return True
 
