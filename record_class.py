@@ -159,106 +159,126 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
          (1, 1, 0x10), (2, 1, 0x20), (3, 0, 0x40), (3, 1, 0x80))
 
 
-# ---- the cat: a little tabby in colour pixel art (2 square pixels per character) ----
-# . clear  K outline  B brown  S stripe  L light tan  P pink  Y eye  E pupil  W sweat drop
-_CAT_COLORS = {"K": 52, "B": 130, "S": 94, "L": 180, "P": 174, "Y": 230, "E": 16, "W": 117}
-_CAT_HEAD = {
-    "open": [
-        ".K.....K......",
-        "KPK...KPK.....",
-        "KBPKKKKPBK....",
-        "KBBBBBBBBBK...",
-        "KBYEBBBYEBK...",
-        "KBYEBBBYEBK...",
-        "KBBBLPLBBBK...",
-        ".KBLLLLLBK....",
+# ---- the cat: an original chibi kitten in colour pixel art (2 square pixels per character) ----
+# . clear  K outline  B brown  S stripe  C cream  P pink  E eye  R collar  G bell
+_CAT_COLORS = {"K": 52, "B": 137, "S": 94, "C": 223, "P": 211, "E": 16, "R": 160, "G": 220}
+CAT_WIDTH, CAT_HEIGHT = 26, 16       # pixels; 16 px = 8 text lines
+_CAT_POSES = {
+    "run": [
+        [
+            "..........................",
+            "..........................",
+            "...............K.....K....",
+            "..............KPK...KPK...",
+            "..............KBPKKKPBK...",
+            "KK...........KBBSBBBSBBK..",
+            "KBKK.........KBBBBBBBBBK..",
+            ".KBBK........KBEBBBBBEBK..",
+            "..KBKKKKKKKKKKBEBCCCBEBK..",
+            "...KKBSBBSBBSKBBCCPCCBBK..",
+            "...KBBSBBSBBSBKBBCCCBBK...",
+            "...KBBBBBBBBBBBKRRGRRK....",
+            "....KBBBBBBBBBBCCCK.......",
+            "..KBBK..........KBBK......",
+            ".KBK..............KBK.....",
+            "KKK................KKK....",
+        ],
+        [
+            "..........................",
+            "..........................",
+            "...............K.....K....",
+            "..............KPK...KPK...",
+            "..............KBPKKKPBK...",
+            "KK...........KBBSBBBSBBK..",
+            "KBKK.........KBBBBBBBBBK..",
+            ".KBBK........KBEBBBBBEBK..",
+            "..KBKKKKKKKKKKBEBCCCBEBK..",
+            "...KKBSBBSBBSKBBCCPCCBBK..",
+            "...KBBSBBSBBSBKBBCCCBBK...",
+            "...KBBBBBBBBBBBKRRGRRK....",
+            "....KBBBBBBBBBBCCCK.......",
+            "....KBKKBK..KBKKBK........",
+            ".....KBBK....KBBK.........",
+            ".....KKKK....KKKK.........",
+        ],
     ],
-    "tired": [                       # droopy lids and a sweat drop
-        ".K.....K.....W",
-        "KPK...KPK...WW",
-        "KBPKKKKPBK..WW",
-        "KBBBBBBBBBK...",
-        "KBKKBBBKKBK...",
-        "KBYEBBBYEBK...",
-        "KBBBLPLBBBK...",
-        ".KBLLLLLBK....",
+    "walk": [
+        [
+            "..........................",
+            "..........................",
+            "K..............K.....K....",
+            "KBK...........KPK...KPK...",
+            ".KBK..........KBPKKKPBK...",
+            ".KBK.........KBBSBBBSBBK..",
+            "..KBK........KBBBBBBBBBK..",
+            "..KBK........KBKKBBBKKBK..",
+            "...KBKKKKKKKKKBEBCCCBEBK..",
+            "....KBSBBSBBSKBBCCPCCBBK..",
+            "...KBBSBBSBBSBKBBCCCBBK...",
+            "...KBBBBBBBBBBBKRRGRRK....",
+            "....KBBBBBBBBBBCCCK.......",
+            "...KBK..KBK..KBK.KBK......",
+            "...KBK..KBK..KBK.KBK......",
+            "...KKK..KKK..KKK.KKK......",
+        ],
+        [
+            "..........................",
+            "..........................",
+            "K..............K.....K....",
+            "KBK...........KPK...KPK...",
+            ".KBK..........KBPKKKPBK...",
+            ".KBK.........KBBSBBBSBBK..",
+            "..KBK........KBBBBBBBBBK..",
+            "..KBK........KBKKBBBKKBK..",
+            "...KBKKKKKKKKKBEBCCCBEBK..",
+            "....KBSBBSBBSKBBCCPCCBBK..",
+            "...KBBSBBSBBSBKBBCCCBBK...",
+            "...KBBBBBBBBBBBKRRGRRK....",
+            "....KBBBBBBBBBBCCCK.......",
+            "..KBK....KBK.KBK..KBK.....",
+            ".KBK......KBKKBK...KBK....",
+            ".KKK......KKKKKK...KKK....",
+        ],
+    ],
+    "sleep": [
+        [
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..............K.....K.....",
+            ".............KPK...KPK....",
+            "....KKKKKKKKKKBPKKKPBK....",
+            "...KBSBBSBBSKBBSBBBSBBK...",
+            "..KBBSBBSBBSKBBBBBBBBBK...",
+            ".KBBBBBBBBBBKBKKCCCKKBK...",
+            ".KBBBBBBBBBBKBBCCPCCBBK...",
+            ".KKBBBBBBBBBBKBBCCCBBK....",
+            "..KKKKKKKKKKKKKKKKKKKK....",
+        ],
+        [
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..........................",
+            "..............K.....K.....",
+            ".............KPK...KPK....",
+            "...KKKKKKKKKKKBPKKKPBK....",
+            "...KBSBBSBBSKBBSBBBSBBK...",
+            "..KBBSBBSBBSKBBBBBBBBBK...",
+            ".KBBBBBBBBBBKBKKCCCKKBK...",
+            ".KBBBBBBBBBBKBBCCPCCBBK...",
+            ".KKBBBBBBBBBBKBBCCCBBK....",
+            "..KKKKKKKKKKKKKKKKKKKK....",
+        ],
     ],
 }
-_CAT_BODY = [                         # striped back, tail up at the end
-    "...........................K..",
-    "..........................KBK.",
-    "..........................KBK.",
-    "...........KKKKKKKKKKKKKKKKBK..",
-    "..........KBSBBSBBSBBSBBBBBK...",
-    ".........KBBSBBSBBSBBSBBBBBK...",
-    "..KKKKKKKBBBBBBBBBBBBBBBBBBK...",
-    "....KLLLBBBBBBBBBBBBBBBBBBBK...",
-]
-_CAT_LEGS = {
-    "stand": [
-        "....KLLBBBBKKKKKKKKKKBBBBBBK...",
-        "....KBBKBBK.........KBBKBBK....",
-        "....KBBKBBK.........KBBKBBK....",
-        "....KLLKLLK.........KLLKLLK....",
-        "....KKKKKKK.........KKKKKKK....",
-    ],
-    "step": [
-        "....KLLBBBBKKKKKKKKKKBBBBBBK...",
-        "...KBBK.KBBK.......KBBK.KBBK...",
-        "...KBBK..KBBK.....KBBK..KBBK...",
-        "..KLLK...KLLK....KLLK...KLLK...",
-        "..KKKK...KKKK....KKKK...KKKK...",
-    ],
-    "stretch": [
-        "...KLLBBBKKKKKKKKKKKKKBBBBBK...",
-        "..KBBK.................KBBK....",
-        ".KBBK...................KBBK...",
-        "KLLK.....................KLLK..",
-        "KKK.......................KKK..",
-    ],
-    "tuck": [
-        "....KLLBBBBKKKKKKKKKKBBBBBBK...",
-        ".......KBBKBBK....KBBKBBK......",
-        "......KBBK.KBBK..KBBK.KBBK.....",
-        "......KLLK..KLLKKLLK..KLLK.....",
-        "......KKKK...KKKKKK...KKKK.....",
-    ],
-}
-_CAT_LOAF = [[                        # asleep: eyes shut, tail tucked round
-    ".K....K.......................",
-    "KPK..KPK......................",
-    "KBPKKPBKKKKKKKKKKKKK..........",
-    "KBBBBBBKBSBBSBBSBBSBK.........",
-    "KBKKBKKBBSBBSBBSBBSBBK........",
-    "KBBLPLBBBBBBBBBBBBBBBBK.......",
-    ".KLLLLKBBBBBBBBBBBBBBBK.......",
-    "..KKKKBBBBBBBBBBBBBBBBK.......",
-    ".KBBBBBBBBBBBBBBBBBBBK........",
-    "..KKKKKKKKKKKKKKKKKKK.........",
-], [                                  # breathing in: the back rises a pixel
-    ".K....K.......................",
-    "KPK..KPKKKKKKKKKKKKK..........",
-    "KBPKKPBKBSBBSBBSBBSBK.........",
-    "KBBBBBBKBBSBBSBBSBBSBK........",
-    "KBKKBKKBBBBBBBBBBBBBBBK.......",
-    "KBBLPLBBBBBBBBBBBBBBBBK.......",
-    ".KLLLLKBBBBBBBBBBBBBBBK.......",
-    "..KKKKBBBBBBBBBBBBBBBBK.......",
-    ".KBBBBBBBBBBBBBBBBBBBK........",
-    "..KKKKKKKKKKKKKKKKKKK.........",
-]]
-CAT_WIDTH, CAT_HEIGHT = 31, 16       # pixels; 16 px = 8 text lines
-
-
-def _cat_pixels(*layers):
-    """Stack (top_row, rows) layers into one CAT_HEIGHT x CAT_WIDTH pixel grid."""
-    grid = [["."] * CAT_WIDTH for _ in range(CAT_HEIGHT)]
-    for top, rows in layers:
-        for y, line in enumerate(rows):
-            for x, ch in enumerate(line[:CAT_WIDTH]):
-                if ch != ".":
-                    grid[top + y][x] = ch
-    return ["".join(r) for r in grid]
 
 
 def _cat_text(pixels, color=True):
@@ -282,11 +302,6 @@ def _cat_text(pixels, color=True):
     return lines
 
 
-_CAT_POSES = {
-    "run": [_cat_pixels((3, _CAT_BODY), (3, _CAT_HEAD["open"]), (11, _CAT_LEGS[legs])) for legs in ("stretch", "tuck")],
-    "walk": [_cat_pixels((3, _CAT_BODY), (3, _CAT_HEAD["tired"]), (11, _CAT_LEGS[legs])) for legs in ("stand", "step")],
-    "sleep": [_cat_pixels((6, loaf)) for loaf in _CAT_LOAF],
-}
 _CAT_SPEED = {"run": 2, "walk": 8, "sleep": 16}      # meter updates (1/16 s) per frame
 _ZZZ = ("z", "z Z", "z Z z")
 _CAT_CACHE = {}
@@ -302,7 +317,7 @@ def cat_lines(mood: str, tick: int, color: bool = True):
     lines = list(_CAT_CACHE[key])
     if mood == "sleep":                                 # z's floating up from the sleeping head
         zzz = _ZZZ[i % len(_ZZZ)]
-        lines[1] = "      " + zzz + " " * (CAT_WIDTH - 6 - len(zzz))
+        lines[2] = (" " * 17 + zzz).ljust(CAT_WIDTH)          # above the head (right side)
     return lines
 
 
