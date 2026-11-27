@@ -24,7 +24,7 @@ Record your classes on a laptop, transcribe them for free on your desktop's GPU,
 - Physical classes record the microphone. Online classes record speaker output (WASAPI loopback), so you capture Teams or Zoom audio without a virtual cable.
 - Records 16 kHz mono FLAC, about 60 MB per hour.
 - Stops when you press Enter, 15 minutes after the class ends, or when the next back-to-back class starts. Each class gets its own file.
-- Writes a `.json` sidecar with the course, session, mode, date and length.
+- Writes a `.json` sidecar with the course, session, mode, date, start and end time (to the second), length and audio level.
 - `--online-only` mode is for a desktop that only joins online classes.
 - Shows a live wave of the input level while it records (`--test` or `Test mic.bat` shows it without recording), so you can see the mic is working.
 - Warns you if nothing is being recorded. Ten seconds in it says whether it can hear sound. If a physical class stays near silent for 30 seconds (5 minutes for online), it prints a warning, changes the window title and flashes the taskbar button, and it says whether the plug looks loose. The per-minute progress line shows the level: speech in a classroom is about -45 to -25 dB, and a dead input is -65 or lower.
@@ -44,6 +44,7 @@ course: "FIN201 Corporate Finance"
 session: Lecture
 mode: Online
 date: 2026-11-24
+started: "14:00:12"
 duration: "1:52:10"
 status: transcribed
 tags: [transcript]

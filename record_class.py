@@ -130,6 +130,13 @@ def alert(text: str, on: bool, beep: bool = False):
         pass
 
 
+def fmt_elapsed(seconds) -> str:
+    """0:12:34, the same h:mm:ss format as the transcript timestamps."""
+    h, rem = divmod(int(seconds), 3600)
+    m, s = divmod(rem, 60)
+    return f"{h:d}:{m:02d}:{s:02d}"
+
+
 WAVE_LOW, WAVE_HIGH = -70.0, -20.0     # dB range drawn by the wave (quiet room ... loud voice)
 _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot -> bit
          (1, 1, 0x10), (2, 1, 0x20), (3, 0, 0x40), (3, 1, 0x80))
@@ -208,8 +215,7 @@ class LiveMeter:
         loud = max(self.dbs[-8 * self.splits:])                  # loudest of the last ~2 s
         status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
         paint = (lambda s: f"\033[{col}m{s}\033[0m") if self.color else (lambda s: s)
-        m, s = divmod(int(elapsed), 60)
-        head = f"  {self.label} {m:02d}:{s:02d}   {loud:4.0f} dB  {paint(status)}"
+        head = f"  {self.label} {fmt_elapsed(elapsed)}   {loud:4.0f} dB  {paint(status)}"
 
         if self.fancy:
             self._draw([head] + ["  " + paint(r) for r in self._rows()])
@@ -337,6 +343,7 @@ def main():
     signal.signal(signal.SIGINT, lambda *_: stop.set())     # Ctrl+C saves and stops, like Enter
 
     started = time.time()
+    began = datetime.now()                                # actual start, to the second
     # online classes can be quiet before they start, so give them longer
     window = rc.get("silent_window_online", 300) if cls["mode"] == "Online" else rc.get("silent_window", 30)
     levels, silent_secs, warned, checked = [], 0, False, False
@@ -397,8 +404,10 @@ def main():
         "session": cls["session"],
         "mode": cls["mode"],
         "date": f"{now:%Y-%m-%d}",
-        "started": f"{now:%H:%M}",
+        "started": f"{began:%H:%M:%S}",
+        "ended": f"{datetime.now():%H:%M:%S}",
         "minutes": round(mins, 1),
+        "seconds": round(mins * 60),
         "level_db": round(sorted(levels)[len(levels) // 2], 1) if levels else None,  # median
         "silent_minutes": round(silent_secs / 60, 1),
     }

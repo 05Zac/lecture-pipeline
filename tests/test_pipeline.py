@@ -183,7 +183,15 @@ def test_live_meter_wave(capsys):
         m.update(rng.normal(0, 0.1, 4000), 6)
     assert set(m._rows()[0]) != {chr(0x2800)}             # speech reaches the top row
     out = capsys.readouterr().out
-    assert "REC 00:06" in out and "OK" in out
+    assert "REC 0:00:06" in out and "OK" in out
     quiet = LiveMeter(width=3)
     quiet.update(np.zeros(4000), 0)
     assert "SILENT" in capsys.readouterr().out
+
+
+def test_elapsed_format_matches_transcript():
+    from lecture_transcriber import fmt_ts
+    from record_class import fmt_elapsed
+    for secs in (0, 59, 754, 5371):
+        assert fmt_elapsed(secs) == fmt_ts(secs)
+    assert fmt_elapsed(5371) == "1:29:31"

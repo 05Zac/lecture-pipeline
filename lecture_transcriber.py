@@ -167,6 +167,7 @@ def render_markdown(title, meta, duration, paragraphs):
         f"session: {meta.get('session') or ''}",
         f"mode: {meta.get('mode') or ''}",
         f"date: {meta['date']}",
+        f"started: \"{meta.get('started') or ''}\"",   # clock time of [0:00:00]
         f"duration: \"{duration}\"",
         "status: transcribed",
         "tags: [transcript]",
