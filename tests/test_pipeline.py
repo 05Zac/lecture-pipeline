@@ -195,3 +195,26 @@ def test_elapsed_format_matches_transcript():
     for secs in (0, 59, 754, 5371):
         assert fmt_elapsed(secs) == fmt_ts(secs)
     assert fmt_elapsed(5371) == "1:29:31"
+
+
+def test_confirm_class_countdown(monkeypatch, capsys):
+    import types
+    import record_class
+    cls = {"session": "Lecture", "mode": "Physical", "end": t(11, 0)}
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "stdin", types.SimpleNamespace(isatty=lambda: True))
+
+    def keys(*pressed):
+        queue = list(pressed)
+        fake = types.SimpleNamespace(kbhit=lambda: bool(queue), getwch=lambda: queue.pop(0))
+        monkeypatch.setitem(sys.modules, "msvcrt", fake)
+
+    keys("m")
+    assert record_class.confirm_class(cls, "FIN201 Corporate Finance") is False   # pick another class
+    keys("\r")
+    assert record_class.confirm_class(cls, "FIN201 Corporate Finance") is True    # start now
+    keys()
+    started = time.time()
+    assert record_class.confirm_class(cls, "FIN201 Corporate Finance", seconds=1) is True
+    assert time.time() - started >= 0.9                                          # waited, then started
+    assert "Timetable: FIN201 Corporate Finance (Lecture, Physical) until 11:00" in capsys.readouterr().out

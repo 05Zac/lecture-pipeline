@@ -66,8 +66,8 @@ def current_class(now, timetable, early_minutes=20, auto_stop_after_end=15, onli
     return dict(code=slot.course, session=slot.session, mode=slot.mode, end=end, stop_at=stop_at)
 
 
-def pick_manually(courses, online_only=False):
-    print("No class on right now. Pick one:")
+def pick_manually(courses, online_only=False, heading="No class on right now. Pick one:"):
+    print(heading)
     codes = list(courses)
     for i, c in enumerate(codes, 1):
         print(f"  {i}. {courses[c]}")
@@ -130,6 +130,23 @@ def alert(text: str, on: bool, beep: bool = False):
         pass
 
 
+PIE = "\u25cb\u25d4\u25d1\u25d5\u25cf"   # empty, quarter, half, three quarters, full circle
+PIE_ASCII = ".oO@@"
+
+
+def pie(frac: float, chars: str = PIE) -> str:
+    """A circle that fills up as frac goes 0 -> 1."""
+    return chars[max(0, min(len(chars) - 1, int(frac * (len(chars) - 1) + 0.5)))]
+
+
+def can_print(text: str) -> bool:
+    try:
+        text.encode(sys.stdout.encoding or "ascii")
+        return True
+    except (UnicodeEncodeError, LookupError):
+        return False
+
+
 def fmt_elapsed(seconds) -> str:
     """0:12:34, the same h:mm:ss format as the transcript timestamps."""
     h, rem = divmod(int(seconds), 3600)
@@ -167,6 +184,7 @@ class LiveMeter:
         except (UnicodeEncodeError, LookupError):
             braille = False
         self.fancy = tty and braille
+        self.pie = PIE if can_print(PIE) else PIE_ASCII
         self.color = tty
         if tty and sys.platform == "win32":
             os.system("")                      # turns on ANSI cursor moves/colours in the Windows console
@@ -215,7 +233,8 @@ class LiveMeter:
         loud = max(self.dbs[-8 * self.splits:])                  # loudest of the last ~2 s
         status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
         paint = (lambda s: f"\033[{col}m{s}\033[0m") if self.color else (lambda s: s)
-        head = f"  {self.label} {fmt_elapsed(elapsed)}   {loud:4.0f} dB  {paint(status)}"
+        minute = pie((elapsed % 60) / 60, self.pie)            # fills once a minute
+        head = f"  {self.label} {fmt_elapsed(elapsed)} {minute}   {loud:4.0f} dB  {paint(status)}"
 
         if self.fancy:
             self._draw([head] + ["  " + paint(r) for r in self._rows()])
@@ -267,6 +286,34 @@ def mic_test(source, np, sample_rate=16000):
     meter.say()
 
 
+def confirm_class(cls, name, seconds=5):
+    """Show the class the timetable picked and count down before recording.
+
+    M = pick a different class (replacement or swapped class), Enter = start now.
+    Doing nothing starts it after `seconds`, so a missed glance never costs a recording.
+    """
+    print(f"  Timetable: {name} ({cls['session']}, {cls['mode']}) until {cls['end']:%H:%M}")
+    if sys.platform != "win32" or not sys.stdin.isatty():
+        return True
+    import msvcrt
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        left = max(1, int(deadline - time.time() + 0.999))   # round up: 5, 4, 3, 2, 1
+        circle = pie(1 - (deadline - time.time()) / seconds, PIE if can_print(PIE) else PIE_ASCII)
+        sys.stdout.write(f"\r  {circle} Starting in {left} s   [M] different class   [Enter] start now ")
+        sys.stdout.flush()
+        while msvcrt.kbhit():
+            key = msvcrt.getwch()
+            if key in "mM":
+                print()
+                return False
+            if key in "\r\n ":
+                deadline = 0
+        time.sleep(0.05)
+    print()
+    return True
+
+
 def unique_path(folder: Path, stem: str) -> Path:
     p = folder / f"{stem}.flac"
     n = 2
@@ -316,7 +363,10 @@ def main():
         early_minutes=rc.get("early_minutes", 20),
         auto_stop_after_end=rc.get("auto_stop_after_end", 15),
         online_only=online_only,
-    ) or pick_manually(cfg.courses, online_only)
+    )
+    if cls and not confirm_class(cls, cfg.courses[cls["code"]]):
+        cls = pick_manually(cfg.courses, online_only, "Pick the class you're recording:")
+    cls = cls or pick_manually(cfg.courses, online_only)
 
     folder = cfg.recordings_dir / cls["code"]
     folder.mkdir(parents=True, exist_ok=True)
