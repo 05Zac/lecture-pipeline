@@ -160,8 +160,8 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
 
 
 # ---- the cat: an original chibi kitten in colour pixel art (2 square pixels per character) ----
-# . clear  K outline  B brown  S stripe  C cream  P pink  E eye  R collar  G bell  W sweat
-_CAT_COLORS = {"K": 52, "B": 137, "S": 94, "C": 223, "P": 211, "E": 16, "R": 160, "G": 220, "W": 117}
+# . clear  K outline  B brown  S stripe  C cream  P pink  E eye  R collar  G bell  W sweat  w eye shine
+_CAT_COLORS = {"K": 52, "B": 137, "S": 94, "C": 223, "P": 211, "E": 16, "R": 160, "G": 220, "W": 117, "w": 231}
 CAT_WIDTH, CAT_HEIGHT = 26, 16       # pixels; 16 px = 8 text lines
 _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
     "run": [
@@ -458,6 +458,224 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             "......KKKKKKKKKKKKKKKK....",
         ],
     ],
+    "sit": [
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..K.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..K.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBKKBBBKKBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..K.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..K.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K.......K...........",
+            ".....KPK.....KPK..........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+        [
+            "......K........K..........",
+            ".....KPK......KPK.........",
+            ".....KBPKKKKKPBK..........",
+            "....KBBBSBSBSBBBK.........",
+            "....KBBBBBBBBBBBK.........",
+            "....KBBwEBBBwEBBK.........",
+            "....KBBEEBBBEEBBK.........",
+            "....KBBBCCPCCBBBK.........",
+            ".....KBBCCCCCBBK..........",
+            "......KKRRGRRKK...........",
+            "......KBBCCCBBK...........",
+            ".....KBBBCCCBBBK..........",
+            ".....KBBBCCCBBBK.KK.......",
+            ".....KBBBCCCBBBKKBK.......",
+            ".....KBCCKBKCCBKBK........",
+            "......KKKKKKKKKKK.........",
+        ],
+    ],
 }
 
 
@@ -482,7 +700,7 @@ def _cat_text(pixels, color=True):
     return lines
 
 
-_CAT_SPEED = {"run": 2, "walk": 4, "sleep": 16}      # meter updates (1/16 s) per frame
+_CAT_SPEED = {"run": 2, "walk": 4, "sleep": 16, "sit": 4}      # meter updates (1/16 s) per frame
 _ZZZ = ("z", "z Z", "z Z z")
 _CAT_CACHE = {}
 
@@ -685,9 +903,11 @@ def confirm_class(cls, name, seconds=5):
         left = max(1, int(deadline - now + 0.999))             # round up: 5, 4, 3, 2, 1
         if big:
             spent = now - begin                                # one turn of the clock per second
-            clock = clock_rows(spent % 1, 6, erase=int(spent) % 2 == 1)
-            side = ["", f"Starting in {left} s", "", "[M]     different class", "[Enter] start now", ""]
-            lines = [f"     \033[36m{c}\033[0m     {s}" for c, s in zip(clock, side)]
+            clock = ["            "] * 2 + [f"\033[36m{c}\033[0m" for c in
+                                            clock_rows(spent % 1, 6, erase=int(spent) % 2 == 1)]
+            side = ["", "", "", f"Starting in {left} s", "", "[M]     different class", "[Enter] start now", ""]
+            kitten = cat_lines("sit", int(spent * 16)) if can_print("\u2588\u2580\u2584") else [""] * 8
+            lines = [f"     {c}     {s.ljust(24)}{k}" for c, s, k in zip(clock, side, kitten)]
             up = f"\033[{drawn - 1}A" if drawn > 1 else ""
             sys.stdout.write(up + "\r" + "\n".join(line + "\033[K" for line in lines))
             drawn = len(lines)
