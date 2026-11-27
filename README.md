@@ -27,7 +27,7 @@ Record your classes on a laptop, transcribe them for free on your desktop's GPU,
 - Writes a `.json` sidecar with the course, session, mode, date, start and end time (to the second), length and audio level.
 - `--online-only` mode is for a desktop that only joins online classes.
 - Before recording a timetable class it shows which class it picked and counts down 5 seconds; press M to pick a different one (for a replacement class) or Enter to start now.
-- Shows a live wave of the input level while it records (`--test` or `Test mic.bat` shows it without recording), so you can see the mic is working.
+- Shows a live wave of the input level while it records, with a pixel-art cat beside it that runs when it hears speech, plods along when the sound is faint and falls asleep when the input is silent (`--test` or `Test mic.bat` shows it without recording), so you can see the mic is working.
 - Warns you if nothing is being recorded. Ten seconds in it says whether it can hear sound. If a physical class stays near silent for 30 seconds (5 minutes for online), it prints a warning, changes the window title and flashes the taskbar button, and it says whether the plug looks loose. The per-minute progress line shows the level: speech in a classroom is about -45 to -25 dB, and a dead input is -65 or lower.
 
 **Transcriber (`lecture_transcriber.py`)**
