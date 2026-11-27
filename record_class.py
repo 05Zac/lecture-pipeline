@@ -159,6 +159,37 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
          (1, 1, 0x10), (2, 1, 0x20), (3, 0, 0x40), (3, 1, 0x80))
 
 
+def clock_rows(frac: float, rows: int):
+    """A round clock face `rows` text lines tall, filled clockwise from 12 o'clock to `frac`."""
+    import math
+    import numpy as np
+    H = W = rows * 4                     # braille dots are roughly square, so this is round
+    y, x = np.mgrid[0:H, 0:W]
+    dx, dy = x + 0.5 - W / 2, y + 0.5 - H / 2
+    r = np.hypot(dx, dy)
+    angle = np.arctan2(dx, -dy) % (2 * math.pi)           # 0 at 12 o'clock, clockwise
+    R = H / 2 - 0.3
+    ring = (r <= R) & (r >= R - 1.3)
+    wedge = (r <= R) & (angle <= frac * 2 * math.pi)
+    return braille_rows(ring | wedge)
+
+
+def braille_rows(grid):
+    """Turn a boolean dot grid (height multiple of 4, even width) into braille text lines."""
+    H, W = grid.shape
+    lines = []
+    for R in range(0, H, 4):
+        line = []
+        for C in range(0, W, 2):
+            code = 0
+            for dy, dx, bit in _DOTS:
+                if grid[R + dy, C + dx]:
+                    code |= bit
+            line.append(chr(0x2800 + code))
+        lines.append("".join(line))
+    return lines
+
+
 class LiveMeter:
     """Live 'voice memo' wave of the input level, redrawn in place in the console.
 
@@ -198,17 +229,7 @@ class LiveMeter:
         H = self.ROWS * 4
         d = np.abs(np.arange(H) + 0.5 - H / 2)[:, None]            # distance of each dot row from the centre
         grid = d <= np.maximum(v * H / 2, 0.5)[None, :]
-        rows = []
-        for R in range(self.ROWS):
-            line = []
-            for C in range(0, cols, 2):
-                code = 0
-                for dy, dx, bit in _DOTS:
-                    if grid[R * 4 + dy, C + dx]:
-                        code |= bit
-                line.append(chr(0x2800 + code))
-            rows.append("".join(line))
-        return rows
+        return braille_rows(grid)
 
     def view(self):
         """Levels 0..1 for drawing, measured from the room's own noise floor.
@@ -233,15 +254,18 @@ class LiveMeter:
         loud = max(self.dbs[-8 * self.splits:])                  # loudest of the last ~2 s
         status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
         paint = (lambda s: f"\033[{col}m{s}\033[0m") if self.color else (lambda s: s)
-        minute = pie((elapsed % 60) / 60, self.pie)            # fills once a minute
-        head = f"  {self.label} {fmt_elapsed(elapsed)} {minute}   {loud:4.0f} dB  {paint(status)}"
+        minute = (elapsed % 60) / 60                           # the clock fills once a minute
+        dot = "\033[31m\u25cf\033[0m " if self.color and self.fancy else ""
+        head = f"  {dot}{self.label} {fmt_elapsed(elapsed)}   {loud:4.0f} dB  {paint(status)}"
 
         if self.fancy:
-            self._draw([head] + ["  " + paint(r) for r in self._rows()])
+            blue = (lambda s: f"\033[36m{s}\033[0m") if self.color else (lambda s: s)
+            wave, clock = self._rows(), clock_rows(minute, self.ROWS)
+            self._draw([head] + ["  " + paint(w) + "    " + blue(c) for w, c in zip(wave, clock)])
         else:
             chars = " .:-=+*#@"
             bars = "".join(chars[round(v * (len(chars) - 1))] for v in self.view()[-self.width:])
-            sys.stdout.write(f"\r{head}  {bars.ljust(self.width)}   ")
+            sys.stdout.write(f"\r{head} {pie(minute, self.pie)}  {bars.ljust(self.width)}   ")
             sys.stdout.flush()
             self.lines = 1
 
