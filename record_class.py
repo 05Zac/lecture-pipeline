@@ -159,107 +159,150 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
          (1, 1, 0x10), (2, 1, 0x20), (3, 0, 0x40), (3, 1, 0x80))
 
 
-# ---- the cat: pixel art drawn with half blocks (2 square pixels per character) ----
-_CAT_ART = {
-    "run": [[
-        "                    #   #   ",
-        "                    #####   ",
-        "#                  ####### ",
-        " #                 ## ### ",
-        "  #    #########   #######",
-        "   ##################### ",
-        "    ##################   ",
-        "     ################    ",
-        "    ##             ##    ",
-        "   ##                ##  ",
-        "  ##                  ## ",
-        " ##                    ##",
-    ], [
-        "                    #   #   ",
-        "                    #####   ",
-        "                   ####### ",
-        "##                 ## ### ",
-        "  #    #########   #######",
-        "   ##################### ",
-        "    ##################   ",
-        "     ################    ",
-        "        ## ##   ## ##    ",
-        "       ##   ## ##   ##   ",
-        "      ##     ###     ##  ",
-        "                         ",
-    ]],
-    "walk": [[
-        "      ##########  #   #   ",
-        "     ##############    ",
-        "    ################### ",
-        "   #################### ",
-        "  # ############## ## # ",
-        "  # ##   ##   ##   ##   ",
-        " #  ##   ##   ##   ##   ",
-        " #  ##   ##   ##   ##   ",
-        "                          ",
-    ], [
-        "      ##########  #   #   ",
-        "     ##############    ",
-        "    ################### ",
-        "   #################### ",
-        "  # ############## ## # ",
-        "  #  ##  ##    ##  ##   ",
-        " #   ##   ##  ##   ##   ",
-        " #  ##    ##  ##    ##  ",
-        "                          ",
-    ]],
-    "sleep": [[
-        "          #  #            ",
-        "      ##########          ",
-        "    ##############        ",
-        "   #################      ",
-        "  #### ##############     ",
-        "  ######################  ",
-        "   ####################   ",
-        "                          ",
-    ], [
-        "          #  #            ",
-        "      ##########          ",
-        "    ##############        ",
-        "   ##################     ",
-        "  ####################    ",
-        "  #### ###############    ",
-        "  ######################  ",
-        "   ####################   ",
-        "                          ",
-    ]],
+# ---- the cat: a little tabby in colour pixel art (2 square pixels per character) ----
+# . clear  K outline  B brown  S stripe  L light tan  P pink  Y eye  E pupil  W sweat drop
+_CAT_COLORS = {"K": 52, "B": 130, "S": 94, "L": 180, "P": 174, "Y": 230, "E": 16, "W": 117}
+_CAT_HEAD = {
+    "open": [
+        ".K.....K......",
+        "KPK...KPK.....",
+        "KBPKKKKPBK....",
+        "KBBBBBBBBBK...",
+        "KBYEBBBYEBK...",
+        "KBYEBBBYEBK...",
+        "KBBBLPLBBBK...",
+        ".KBLLLLLBK....",
+    ],
+    "tired": [                       # droopy lids and a sweat drop
+        ".K.....K.....W",
+        "KPK...KPK...WW",
+        "KBPKKKKPBK..WW",
+        "KBBBBBBBBBK...",
+        "KBKKBBBKKBK...",
+        "KBYEBBBYEBK...",
+        "KBBBLPLBBBK...",
+        ".KBLLLLLBK....",
+    ],
 }
-CAT_WIDTH = 28
-_CAT_SPEED = {"run": 2, "walk": 8, "sleep": 16}      # meter updates (1/16 s) per frame
-_ZZZ = ("    z", "      Z", "  z  Z")
+_CAT_BODY = [                         # striped back, tail up at the end
+    "...........................K..",
+    "..........................KBK.",
+    "..........................KBK.",
+    "...........KKKKKKKKKKKKKKKKBK..",
+    "..........KBSBBSBBSBBSBBBBBK...",
+    ".........KBBSBBSBBSBBSBBBBBK...",
+    "..KKKKKKKBBBBBBBBBBBBBBBBBBK...",
+    "....KLLLBBBBBBBBBBBBBBBBBBBK...",
+]
+_CAT_LEGS = {
+    "stand": [
+        "....KLLBBBBKKKKKKKKKKBBBBBBK...",
+        "....KBBKBBK.........KBBKBBK....",
+        "....KBBKBBK.........KBBKBBK....",
+        "....KLLKLLK.........KLLKLLK....",
+        "....KKKKKKK.........KKKKKKK....",
+    ],
+    "step": [
+        "....KLLBBBBKKKKKKKKKKBBBBBBK...",
+        "...KBBK.KBBK.......KBBK.KBBK...",
+        "...KBBK..KBBK.....KBBK..KBBK...",
+        "..KLLK...KLLK....KLLK...KLLK...",
+        "..KKKK...KKKK....KKKK...KKKK...",
+    ],
+    "stretch": [
+        "...KLLBBBKKKKKKKKKKKKKBBBBBK...",
+        "..KBBK.................KBBK....",
+        ".KBBK...................KBBK...",
+        "KLLK.....................KLLK..",
+        "KKK.......................KKK..",
+    ],
+    "tuck": [
+        "....KLLBBBBKKKKKKKKKKBBBBBBK...",
+        ".......KBBKBBK....KBBKBBK......",
+        "......KBBK.KBBK..KBBK.KBBK.....",
+        "......KLLK..KLLKKLLK..KLLK.....",
+        "......KKKK...KKKKKK...KKKK.....",
+    ],
+}
+_CAT_LOAF = [[                        # asleep: eyes shut, tail tucked round
+    ".K....K.......................",
+    "KPK..KPK......................",
+    "KBPKKPBKKKKKKKKKKKKK..........",
+    "KBBBBBBKBSBBSBBSBBSBK.........",
+    "KBKKBKKBBSBBSBBSBBSBBK........",
+    "KBBLPLBBBBBBBBBBBBBBBBK.......",
+    ".KLLLLKBBBBBBBBBBBBBBBK.......",
+    "..KKKKBBBBBBBBBBBBBBBBK.......",
+    ".KBBBBBBBBBBBBBBBBBBBK........",
+    "..KKKKKKKKKKKKKKKKKKK.........",
+], [                                  # breathing in: the back rises a pixel
+    ".K....K.......................",
+    "KPK..KPKKKKKKKKKKKKK..........",
+    "KBPKKPBKBSBBSBBSBBSBK.........",
+    "KBBBBBBKBBSBBSBBSBBSBK........",
+    "KBKKBKKBBBBBBBBBBBBBBBK.......",
+    "KBBLPLBBBBBBBBBBBBBBBBK.......",
+    ".KLLLLKBBBBBBBBBBBBBBBK.......",
+    "..KKKKBBBBBBBBBBBBBBBBK.......",
+    ".KBBBBBBBBBBBBBBBBBBBK........",
+    "..KKKKKKKKKKKKKKKKKKK.........",
+]]
+CAT_WIDTH, CAT_HEIGHT = 31, 16       # pixels; 16 px = 8 text lines
 
 
-def _half_blocks(art, height=12, width=CAT_WIDTH):
-    """Pixel rows ('#' = on) -> half-block text lines, bottom aligned on the 'ground'."""
-    art = [""] * (height - len(art)) + list(art)
-    art = [row.ljust(width)[:width] for row in art]
+def _cat_pixels(*layers):
+    """Stack (top_row, rows) layers into one CAT_HEIGHT x CAT_WIDTH pixel grid."""
+    grid = [["."] * CAT_WIDTH for _ in range(CAT_HEIGHT)]
+    for top, rows in layers:
+        for y, line in enumerate(rows):
+            for x, ch in enumerate(line[:CAT_WIDTH]):
+                if ch != ".":
+                    grid[top + y][x] = ch
+    return ["".join(r) for r in grid]
+
+
+def _cat_text(pixels, color=True):
+    """Two pixel rows per text line: upper half block in the top colour on the bottom colour."""
     lines = []
-    for y in range(0, height, 2):
-        line = ""
-        for x in range(width):
-            top, bottom = art[y][x] == "#", art[y + 1][x] == "#"
-            line += "\u2588" if top and bottom else "\u2580" if top else "\u2584" if bottom else " "
-        lines.append(line)
+    for y in range(0, CAT_HEIGHT, 2):
+        out = []
+        for top, bot in zip(pixels[y], pixels[y + 1]):
+            t, b = _CAT_COLORS.get(top), _CAT_COLORS.get(bot)
+            if t is None and b is None:
+                out.append(" ")
+            elif not color:
+                out.append("\u2588" if t is not None and b is not None else "\u2580" if t is not None else "\u2584")
+            elif t is not None and b is not None:
+                out.append(f"\033[38;5;{t};48;5;{b}m\u2580\033[0m")
+            elif t is not None:
+                out.append(f"\033[38;5;{t}m\u2580\033[0m")
+            else:
+                out.append(f"\033[38;5;{b}m\u2584\033[0m")
+        lines.append("".join(out))
     return lines
 
 
-CAT_FRAMES = {mood: [_half_blocks(f) for f in frames] for mood, frames in _CAT_ART.items()}
+_CAT_POSES = {
+    "run": [_cat_pixels((3, _CAT_BODY), (3, _CAT_HEAD["open"]), (11, _CAT_LEGS[legs])) for legs in ("stretch", "tuck")],
+    "walk": [_cat_pixels((3, _CAT_BODY), (3, _CAT_HEAD["tired"]), (11, _CAT_LEGS[legs])) for legs in ("stand", "step")],
+    "sleep": [_cat_pixels((6, loaf)) for loaf in _CAT_LOAF],
+}
+_CAT_SPEED = {"run": 2, "walk": 8, "sleep": 16}      # meter updates (1/16 s) per frame
+_ZZZ = ("z", "z Z", "z Z z")
+_CAT_CACHE = {}
 
 
-def cat_lines(mood: str, tick: int):
-    """The cat's 6 text lines for this moment: 'run' (OK), 'walk' (quiet), 'sleep' (SILENT)."""
-    frames = CAT_FRAMES[mood]
+def cat_lines(mood: str, tick: int, color: bool = True):
+    """The cat's 8 text lines: 'run' (OK), 'walk' (quiet, worn out), 'sleep' (SILENT)."""
+    poses = _CAT_POSES[mood]
     i = tick // _CAT_SPEED[mood]
-    lines = list(frames[i % len(frames)])
-    if mood == "sleep":                                 # z's drifting up beside the head
+    key = (mood, i % len(poses), color)
+    if key not in _CAT_CACHE:
+        _CAT_CACHE[key] = _cat_text(poses[key[1]], color)
+    lines = list(_CAT_CACHE[key])
+    if mood == "sleep":                                 # z's floating up from the sleeping head
         zzz = _ZZZ[i % len(_ZZZ)]
-        lines[0] = (" " * 16 + zzz).ljust(CAT_WIDTH)[:CAT_WIDTH]
+        lines[1] = "      " + zzz + " " * (CAT_WIDTH - 6 - len(zzz))
     return lines
 
 
@@ -373,8 +416,10 @@ class LiveMeter:
             if self.cat:
                 self.tick += 1
                 mood = {"OK": "run", "quiet": "walk"}.get(status, "sleep")
-                orange = (lambda s: f"\033[38;5;215m{s}\033[0m") if self.color else (lambda s: s)
-                rows = [w + "   " + orange(c) for w, c in zip(rows, cat_lines(mood, self.tick))]
+                cat = cat_lines(mood, self.tick, self.color)
+                blank = " " * (self.width + 2)
+                rows = [blank] * (len(cat) - len(rows)) + rows     # the cat stands taller than the wave
+                rows = [w + "   " + c for w, c in zip(rows, cat)]
             self._draw([head] + rows)
         else:
             chars = " .:-=+*#@"
