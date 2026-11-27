@@ -218,3 +218,22 @@ def test_confirm_class_countdown(monkeypatch, capsys):
     assert record_class.confirm_class(cls, "FIN201 Corporate Finance", seconds=1) is True
     assert time.time() - started >= 0.9                                          # waited, then started
     assert "Timetable: FIN201 Corporate Finance (Lecture, Physical) until 11:00" in capsys.readouterr().out
+
+
+def test_cat_plays_transitions_between_moods():
+    import io
+    import contextlib
+    import numpy as np
+    from record_class import LiveMeter
+    m = LiveMeter()
+    m.fancy = m.cat = True
+    m.color = False
+    rng = np.random.default_rng(0)
+    seen = []
+    with contextlib.redirect_stdout(io.StringIO()):
+        for level, ticks in ((0.05, 60), (0.0018, 60), (0.00002, 80), (0.05, 80)):
+            for _ in range(ticks):
+                m.update(rng.normal(0, level, 1000), 0)
+                seen.append(m.cat_queue[0][0] if m.cat_queue else m.cat_mood)
+    order = [seen[0]] + [b for a, b in zip(seen, seen[1:]) if a != b]
+    assert order == ["run", "to_walk", "walk", "to_sleep", "sleep", "from_sleep", "to_run", "run"]
