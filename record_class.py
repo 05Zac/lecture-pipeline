@@ -160,8 +160,8 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
 
 
 # ---- the cat: an original chibi kitten in colour pixel art (2 square pixels per character) ----
-# . clear  K outline  B brown  S stripe  C cream  P pink  E eye  R collar  G bell  D dust  W sweat
-_CAT_COLORS = {"K": 52, "B": 137, "S": 94, "C": 223, "P": 211, "E": 16, "R": 160, "G": 220, "D": 248, "W": 117}
+# . clear  K outline  B brown  S stripe  C cream  P pink  E eye  R collar  G bell  W sweat
+_CAT_COLORS = {"K": 52, "B": 137, "S": 94, "C": 223, "P": 211, "E": 16, "R": 160, "G": 220, "W": 117}
 CAT_WIDTH, CAT_HEIGHT = 26, 16       # pixels; 16 px = 8 text lines
 _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
     "run": [
@@ -216,8 +216,8 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            ".D.KKKKBK...KBKKKK........",
-            "D......KKK...KKK..........",
+            "...KKKKBK...KBKKKK........",
+            ".......KKK...KKK..........",
         ],
         [
             "..........................",
@@ -270,8 +270,8 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            ".D..KKKK...KKK..KBK.......",
-            "D....KKK.........KKK......",
+            "....KKKK...KKK..KBK.......",
+            ".....KKK.........KKK......",
         ],
     ],
     "walk": [
