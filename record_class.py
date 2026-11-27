@@ -159,8 +159,12 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
          (1, 1, 0x10), (2, 1, 0x20), (3, 0, 0x40), (3, 1, 0x80))
 
 
-def clock_rows(frac: float, rows: int):
-    """A round clock face `rows` text lines tall, filled clockwise from 12 o'clock to `frac`."""
+def clock_rows(frac: float, rows: int, erase: bool = False):
+    """A round clock face `rows` text lines tall, filled clockwise from 12 o'clock to `frac`.
+
+    With erase=True the hand sweeps the fill away instead, so alternating seconds
+    look like one continuous spin rather than a blink back to empty.
+    """
     import math
     import numpy as np
     H = W = rows * 4                     # braille dots are roughly square, so this is round
@@ -170,7 +174,8 @@ def clock_rows(frac: float, rows: int):
     angle = np.arctan2(dx, -dy) % (2 * math.pi)           # 0 at 12 o'clock, clockwise
     R = H / 2 - 0.3
     ring = (r <= R) & (r >= R - 1.3)
-    wedge = (r <= R) & (angle <= frac * 2 * math.pi)
+    swept = angle <= frac * 2 * math.pi
+    wedge = (r <= R) & (~swept if erase else swept)
     return braille_rows(ring | wedge)
 
 
@@ -205,7 +210,7 @@ class LiveMeter:
 
     ROWS = 6                 # text rows of wave (x4 braille dots = 24 dots tall)
 
-    def __init__(self, width=40, label="REC", splits=4):
+    def __init__(self, width=40, label="REC", splits=1):
         self.width, self.label, self.splits = width, label, splits   # splits: columns per update
         self.dbs, self.lines = [], 0
         tty = sys.stdout.isatty()
@@ -251,21 +256,21 @@ class LiveMeter:
             self.dbs.append(to_db(part))
         self.dbs = self.dbs[-self.width * 8:]                    # ~20 s, for the noise floor
 
-        loud = max(self.dbs[-8 * self.splits:])                  # loudest of the last ~2 s
+        loud = max(self.dbs[-32:])                               # loudest of the last ~2 s (16 cols/s)
         status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
         paint = (lambda s: f"\033[{col}m{s}\033[0m") if self.color else (lambda s: s)
-        minute = (elapsed % 60) / 60                           # the clock fills once a minute
+        spin, erase = elapsed % 1, int(elapsed) % 2 == 1      # one turn of the clock per second
         dot = "\033[31m\u25cf\033[0m " if self.color and self.fancy else ""
         head = f"  {dot}{self.label} {fmt_elapsed(elapsed)}   {loud:4.0f} dB  {paint(status)}"
 
         if self.fancy:
             blue = (lambda s: f"\033[36m{s}\033[0m") if self.color else (lambda s: s)
-            wave, clock = self._rows(), clock_rows(minute, self.ROWS)
+            wave, clock = self._rows(), clock_rows(spin, self.ROWS, erase)
             self._draw([head] + ["  " + paint(w) + "    " + blue(c) for w, c in zip(wave, clock)])
         else:
             chars = " .:-=+*#@"
             bars = "".join(chars[round(v * (len(chars) - 1))] for v in self.view()[-self.width:])
-            sys.stdout.write(f"\r{head} {pie(minute, self.pie)}  {bars.ljust(self.width)}   ")
+            sys.stdout.write(f"\r{head} {pie((elapsed % 60) / 60, self.pie)}  {bars.ljust(self.width)}   ")
             sys.stdout.flush()
             self.lines = 1
 
@@ -305,7 +310,7 @@ def mic_test(source, np, sample_rate=16000):
     print(f"Mic test: {source.name}\nTalk or tap the mic: the wave should jump. Press Enter to finish.\n")
     with source.recorder(samplerate=sample_rate, channels=1) as rec:
         while not stop.is_set():
-            chunk = np.asarray(rec.record(numframes=sample_rate // 4), dtype="float32").reshape(-1)
+            chunk = np.asarray(rec.record(numframes=sample_rate // 16), dtype="float32").reshape(-1)
             meter.update(chunk, time.time() - started)
     meter.say()
 
@@ -424,13 +429,13 @@ def main():
     alert(f"Recording {cls['code']}", on=False)
     meter = LiveMeter()
     say = meter.say
-    quarter = sample_rate // 4
+    step = sample_rate // 16
     with sf.SoundFile(out, "w", samplerate=sample_rate, channels=1, format="FLAC") as f,          source.recorder(samplerate=sample_rate, channels=1) as rec:
         last_print = 0
         while not stop.is_set() and datetime.now() < stop_at:
             parts = []
-            for _ in range(4):                                  # 4 x 0.25 s = 1 s
-                part = np.asarray(rec.record(numframes=quarter), dtype="float32").reshape(-1)
+            for _ in range(16):                                 # 16 x 1/16 s = 1 s (smooth redraw)
+                part = np.asarray(rec.record(numframes=step), dtype="float32").reshape(-1)
                 parts.append(part)
                 meter.update(part, time.time() - started)
             chunk = np.concatenate(parts)
