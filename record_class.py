@@ -163,10 +163,11 @@ _DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot
 # . clear  K outline  B brown  S stripe  C cream  P pink  E eye  R collar  G bell  D dust
 _CAT_COLORS = {"K": 52, "B": 137, "S": 94, "C": 223, "P": 211, "E": 16, "R": 160, "G": 220, "D": 248}
 CAT_WIDTH, CAT_HEIGHT = 26, 16       # pixels; 16 px = 8 text lines
-_CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
+_CAT_POSES = {   # run: 6-frame trot (each leg pair alternates), bounce, tail wave, dust
     "run": [
         [
             "..........................",
+            "..........................",
             "...............K.....K....",
             "..............KPK...KPK...",
             "..............KBPKKKPBK...",
@@ -179,12 +180,10 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            ".KKKKKK.......KKKKKK......",
-            "..........................",
-            "..........................",
+            "....KBKK..KBK....KBK......",
+            "...KKKKKKKKK......KKK.....",
         ],
         [
-            "..........................",
             "..........................",
             "...............K.....K....",
             "..............KPK...KPK...",
@@ -198,8 +197,9 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            ".KBK.KBK.....KBKBK........",
-            "KKK.KKK.......KKKKK.......",
+            "....KKBK...KBK..KKK.......",
+            "....KKK...KKK.............",
+            "..........................",
         ],
         [
             "..........................",
@@ -216,8 +216,8 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            "...KBKKBK...KBKKBK........",
-            "..KKK.KKK...KKKKK.........",
+            ".D.KKKKBK...KBKKKK........",
+            "D......KKK...KKK..........",
         ],
         [
             "..........................",
@@ -234,11 +234,10 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            "....KKK.KKKKKKKK..........",
-            "..........................",
+            ".KBK....KBK..KBKK.........",
+            "KKK......KKKKKKKKK........",
         ],
         [
-            "..........................",
             "..........................",
             "...............K.....K....",
             "..............KPK...KPK...",
@@ -252,10 +251,12 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            ".D.KBK.KBK..KBKKBK........",
-            "D...KKK.KKKKKK.KKK........",
+            "..KBK..KKK...KKBK.........",
+            ".KKK.........KKK..........",
+            "..........................",
         ],
         [
+            "..........................",
             "..........................",
             "...............K.....K....",
             "..............KPK...KPK...",
@@ -269,9 +270,8 @@ _CAT_POSES = {   # run: 6-frame gallop with bounce, tail wave and dust
             ".KBBBBBBBBBBBBBKRRGRRK....",
             ".KBBBBBBBBBBBBCCCCK.......",
             "..KKKBBBBBBBBBKKKK........",
-            ".DKBK.KBK....KBK.KBK......",
-            "DKKK.KKK......KKK.KKK.....",
-            "..........................",
+            ".D..KKKK...KKK..KBK.......",
+            "D....KKK.........KKK......",
         ],
     ],
     "walk": [
