@@ -22,6 +22,7 @@ Output (inside the synced recordings folder):
 import argparse
 import json
 import os
+import signal
 import sys
 import threading
 import time
@@ -129,64 +130,134 @@ def alert(text: str, on: bool, beep: bool = False):
         pass
 
 
-WAVE_CHARS = " ▁▂▃▄▅▆▇█"
 WAVE_LOW, WAVE_HIGH = -70.0, -20.0     # dB range drawn by the wave (quiet room ... loud voice)
+_DOTS = ((0, 0, 0x01), (1, 0, 0x02), (2, 0, 0x04), (0, 1, 0x08),   # braille dot -> bit
+         (1, 1, 0x10), (2, 1, 0x20), (3, 0, 0x40), (3, 1, 0x80))
 
 
 class LiveMeter:
-    """One self-updating console line: a scrolling wave of the input level.
+    """Live 'voice memo' wave of the input level, redrawn in place in the console.
 
-        REC 12:34  ▁▂▅▇▆▃▁▁▂▆█▇▅▂▁▁▃▅▆▄  -32 dB  OK
+          REC 12:34   -32 dB  OK
+          ⢀⣠⣀⣀⣄⠀⠀⠀⠀⢀⣄⠀⠀⠀⠀⢀⣤⡀⠀⣀⣀⣄⣀⣴⣤⣤⣀
+          ⣿⣿⣿⣿⣿⡷⠶⠶⠶⣿⣿⡷⠶⠶⠶⢾⣿⣿⠶⣿⣿⣿⣿⣿⣿⣿⣿⣿
+          ⠈⠙⠉⠉⠋⠀⠀⠀⠀⠈⠋⠀⠀⠀⠀⠈⠛⠁⠀⠉⠉⠋⠉⠻⠛⠛⠉
 
-    Bars moving when someone talks = the mic works. Flat line = it doesn't.
+    The wave swelling when someone talks = the mic works. A flat line = it doesn't.
+    Falls back to one line of ASCII bars when the output isn't a console that can
+    show braille characters.
     """
 
-    def __init__(self, width=40, label="REC"):
-        self.width, self.label, self.dbs, self.shown = width, label, [], False
-        self.color = sys.stdout.isatty()
+    ROWS = 6                 # text rows of wave (x4 braille dots = 24 dots tall)
+
+    def __init__(self, width=40, label="REC", splits=4):
+        self.width, self.label, self.splits = width, label, splits   # splits: columns per update
+        self.dbs, self.lines = [], 0
+        tty = sys.stdout.isatty()
         try:
-            WAVE_CHARS.encode(sys.stdout.encoding or "ascii")
-            self.chars = WAVE_CHARS
+            "\u28ff\u2581".encode(sys.stdout.encoding or "ascii")
+            braille = True
         except (UnicodeEncodeError, LookupError):
-            self.chars = " .:-=+*#@"           # old consoles / redirected output
-        if self.color and sys.platform == "win32":
-            os.system("")                      # turns on ANSI colours in the Windows console
+            braille = False
+        self.fancy = tty and braille
+        self.color = tty
+        if tty and sys.platform == "win32":
+            os.system("")                      # turns on ANSI cursor moves/colours in the Windows console
 
-    def bar(self, db):
-        frac = (db - WAVE_LOW) / (WAVE_HIGH - WAVE_LOW)
-        n = len(self.chars) - 1
-        return self.chars[max(0, min(n, round(frac * n)))]
+    def _rows(self):
+        """Mirrored braille wave, ROWS tall, newest on the right."""
+        import numpy as np
+        cols = self.width * 2
+        v = np.array(([0.0] * cols + self.view())[-cols:])
+        v = np.convolve(v, [0.25, 0.5, 0.25], mode="same")         # soften into curves
+        H = self.ROWS * 4
+        d = np.abs(np.arange(H) + 0.5 - H / 2)[:, None]            # distance of each dot row from the centre
+        grid = d <= np.maximum(v * H / 2, 0.5)[None, :]
+        rows = []
+        for R in range(self.ROWS):
+            line = []
+            for C in range(0, cols, 2):
+                code = 0
+                for dy, dx, bit in _DOTS:
+                    if grid[R * 4 + dy, C + dx]:
+                        code |= bit
+                line.append(chr(0x2800 + code))
+            rows.append("".join(line))
+        return rows
 
-    def update(self, db, elapsed):
-        self.dbs = (self.dbs + [db])[-self.width:]
-        wave = "".join(self.bar(d) for d in self.dbs).ljust(self.width)
-        loud = max(self.dbs[-8:])               # last ~2 s
+    def view(self):
+        """Levels 0..1 for drawing, measured from the room's own noise floor.
+
+        Steady background noise (fans, aircon, a hot mic) sits at the floor and
+        draws as a thin line; speech rises above it and swells the wave. A dead
+        input has no floor above WAVE_LOW, so it stays flat too.
+        """
+        import numpy as np
+        recent = self.dbs[-self.width * 2:]
+        floor = max(WAVE_LOW, float(np.percentile(self.dbs, 20)) + 2)
+        span = max(20.0, WAVE_HIGH - floor) if floor < WAVE_HIGH else 20.0
+        return [min(1.0, max(0.0, (d - floor) / span)) for d in recent]
+
+    def update(self, samples, elapsed):
+        """Feed the newest audio (any length); redraws the meter."""
+        import numpy as np
+        for part in np.array_split(np.asarray(samples).reshape(-1), self.splits):
+            self.dbs.append(to_db(part))
+        self.dbs = self.dbs[-self.width * 8:]                    # ~20 s, for the noise floor
+
+        loud = max(self.dbs[-8 * self.splits:])                  # loudest of the last ~2 s
         status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
-        if self.color:
-            wave, status = f"\033[{col}m{wave}\033[0m", f"\033[{col}m{status}\033[0m"
+        paint = (lambda s: f"\033[{col}m{s}\033[0m") if self.color else (lambda s: s)
         m, s = divmod(int(elapsed), 60)
-        sys.stdout.write(f"\r  {self.label} {m:02d}:{s:02d}  {wave}  {loud:4.0f} dB  {status}   ")
+        head = f"  {self.label} {m:02d}:{s:02d}   {loud:4.0f} dB  {paint(status)}"
+
+        if self.fancy:
+            self._draw([head] + ["  " + paint(r) for r in self._rows()])
+        else:
+            chars = " .:-=+*#@"
+            bars = "".join(chars[round(v * (len(chars) - 1))] for v in self.view()[-self.width:])
+            sys.stdout.write(f"\r{head}  {bars.ljust(self.width)}   ")
+            sys.stdout.flush()
+            self.lines = 1
+
+    def _draw(self, lines):
+        up = f"\033[{self.lines - 1}A" if self.lines > 1 else ""
+        sys.stdout.write(up + "\r" + "\n".join(line + "\033[K" for line in lines))
         sys.stdout.flush()
-        self.shown = True
+        self.lines = len(lines)
 
     def say(self, text=""):
-        """Print a normal message above the meter line."""
-        if self.shown:
-            sys.stdout.write("\r" + " " * (self.width + 40) + "\r")
-            self.shown = False
+        """Print a normal message above the meter (the meter redraws on the next update)."""
+        if self.lines:
+            if self.fancy:
+                up = f"\033[{self.lines - 1}A" if self.lines > 1 else ""
+                sys.stdout.write(up + "\r\033[J")
+            else:
+                sys.stdout.write("\r" + " " * (self.width + 40) + "\r")
+            self.lines = 0
         print(text, flush=True)
+
+
+def wait_for_enter(stop):
+    """Set `stop` when Enter is pressed (or stdin closes)."""
+    try:
+        input()
+    except (EOFError, OSError):
+        pass
+    stop.set()
 
 
 def mic_test(source, np, sample_rate=16000):
     """Show the live wave without saving anything, until Enter."""
     stop = threading.Event()
-    threading.Thread(target=lambda: (input(), stop.set()), daemon=True).start()
+    threading.Thread(target=wait_for_enter, args=(stop,), daemon=True).start()
+    signal.signal(signal.SIGINT, lambda *_: stop.set())     # Ctrl+C stops cleanly too
     meter, started = LiveMeter(label="TEST"), time.time()
     print(f"Mic test: {source.name}\nTalk or tap the mic: the wave should jump. Press Enter to finish.\n")
     with source.recorder(samplerate=sample_rate, channels=1) as rec:
         while not stop.is_set():
             chunk = np.asarray(rec.record(numframes=sample_rate // 4), dtype="float32").reshape(-1)
-            meter.update(to_db(chunk), time.time() - started)
+            meter.update(chunk, time.time() - started)
     meter.say()
 
 
@@ -259,17 +330,11 @@ def main():
     print(f"  Source    : {source.name}")
     print(f"  File      : {out.name}")
     print(f"  Auto-stop : {stop_at:%H:%M}")
-    print("  Press Enter to stop.")
+    print("  Press Enter (or Ctrl+C) to stop.")
     print("=" * 56)
 
-    def wait_enter():
-        try:
-            input()
-        except EOFError:
-            pass
-        stop.set()
-
-    threading.Thread(target=wait_enter, daemon=True).start()
+    threading.Thread(target=wait_for_enter, args=(stop,), daemon=True).start()
+    signal.signal(signal.SIGINT, lambda *_: stop.set())     # Ctrl+C saves and stops, like Enter
 
     started = time.time()
     # online classes can be quiet before they start, so give them longer
@@ -286,7 +351,7 @@ def main():
             for _ in range(4):                                  # 4 x 0.25 s = 1 s
                 part = np.asarray(rec.record(numframes=quarter), dtype="float32").reshape(-1)
                 parts.append(part)
-                meter.update(to_db(part), time.time() - started)
+                meter.update(part, time.time() - started)
             chunk = np.concatenate(parts)
             f.write(chunk)
             levels.append(to_db(chunk))

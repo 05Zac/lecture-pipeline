@@ -169,13 +169,21 @@ def test_silence_alarm():
 
 
 def test_live_meter_wave(capsys):
+    import numpy as np
     from record_class import LiveMeter
-    m = LiveMeter(width=5)
-    m.chars = " .:-=+*#@"
-    for db in (-100, -70, -45, -20, 0):
-        m.update(db, 75)
-    line = capsys.readouterr().out.split("\r")[-1]
-    assert "REC 01:15" in line and "    =@@  " in line and "OK" in line
-    m2 = LiveMeter(width=3)
-    m2.update(-90, 0)
+    m = LiveMeter(width=10)
+    m.fancy, m.color = True, False
+    rng = np.random.default_rng(0)
+    for _ in range(20):                                  # 5 s of steady room noise
+        m.update(rng.normal(0, 0.003, 4000), 5)
+    flat = m._rows()
+    assert len(flat) == LiveMeter.ROWS
+    assert set(flat[0]) == {chr(0x2800)}                  # noise floor: nothing above the centre line
+    for _ in range(4):                                   # then someone talks
+        m.update(rng.normal(0, 0.1, 4000), 6)
+    assert set(m._rows()[0]) != {chr(0x2800)}             # speech reaches the top row
+    out = capsys.readouterr().out
+    assert "REC 00:06" in out and "OK" in out
+    quiet = LiveMeter(width=3)
+    quiet.update(np.zeros(4000), 0)
     assert "SILENT" in capsys.readouterr().out
