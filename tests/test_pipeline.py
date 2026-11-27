@@ -166,3 +166,16 @@ def test_silence_alarm():
     assert not is_silent(speech, 30)
     assert is_silent(dead[:27] + [-20.0] * 3, 30)       # a few bumps don't hide a dead mic
     assert not is_silent(dead[:20] + speech[:10], 30)   # someone talking for 10 s is enough
+
+
+def test_live_meter_wave(capsys):
+    from record_class import LiveMeter
+    m = LiveMeter(width=5)
+    m.chars = " .:-=+*#@"
+    for db in (-100, -70, -45, -20, 0):
+        m.update(db, 75)
+    line = capsys.readouterr().out.split("\r")[-1]
+    assert "REC 01:15" in line and "    =@@  " in line and "OK" in line
+    m2 = LiveMeter(width=3)
+    m2.update(-90, 0)
+    assert "SILENT" in capsys.readouterr().out

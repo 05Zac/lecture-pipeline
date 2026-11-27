@@ -21,6 +21,7 @@ Output (inside the synced recordings folder):
 
 import argparse
 import json
+import os
 import sys
 import threading
 import time
@@ -128,6 +129,67 @@ def alert(text: str, on: bool, beep: bool = False):
         pass
 
 
+WAVE_CHARS = " ▁▂▃▄▅▆▇█"
+WAVE_LOW, WAVE_HIGH = -70.0, -20.0     # dB range drawn by the wave (quiet room ... loud voice)
+
+
+class LiveMeter:
+    """One self-updating console line: a scrolling wave of the input level.
+
+        REC 12:34  ▁▂▅▇▆▃▁▁▂▆█▇▅▂▁▁▃▅▆▄  -32 dB  OK
+
+    Bars moving when someone talks = the mic works. Flat line = it doesn't.
+    """
+
+    def __init__(self, width=40, label="REC"):
+        self.width, self.label, self.dbs, self.shown = width, label, [], False
+        self.color = sys.stdout.isatty()
+        try:
+            WAVE_CHARS.encode(sys.stdout.encoding or "ascii")
+            self.chars = WAVE_CHARS
+        except (UnicodeEncodeError, LookupError):
+            self.chars = " .:-=+*#@"           # old consoles / redirected output
+        if self.color and sys.platform == "win32":
+            os.system("")                      # turns on ANSI colours in the Windows console
+
+    def bar(self, db):
+        frac = (db - WAVE_LOW) / (WAVE_HIGH - WAVE_LOW)
+        n = len(self.chars) - 1
+        return self.chars[max(0, min(n, round(frac * n)))]
+
+    def update(self, db, elapsed):
+        self.dbs = (self.dbs + [db])[-self.width:]
+        wave = "".join(self.bar(d) for d in self.dbs).ljust(self.width)
+        loud = max(self.dbs[-8:])               # last ~2 s
+        status, col = ("OK", "32") if loud >= -50 else ("quiet", "33") if loud >= SILENT_DB else ("SILENT", "31")
+        if self.color:
+            wave, status = f"\033[{col}m{wave}\033[0m", f"\033[{col}m{status}\033[0m"
+        m, s = divmod(int(elapsed), 60)
+        sys.stdout.write(f"\r  {self.label} {m:02d}:{s:02d}  {wave}  {loud:4.0f} dB  {status}   ")
+        sys.stdout.flush()
+        self.shown = True
+
+    def say(self, text=""):
+        """Print a normal message above the meter line."""
+        if self.shown:
+            sys.stdout.write("\r" + " " * (self.width + 40) + "\r")
+            self.shown = False
+        print(text, flush=True)
+
+
+def mic_test(source, np, sample_rate=16000):
+    """Show the live wave without saving anything, until Enter."""
+    stop = threading.Event()
+    threading.Thread(target=lambda: (input(), stop.set()), daemon=True).start()
+    meter, started = LiveMeter(label="TEST"), time.time()
+    print(f"Mic test: {source.name}\nTalk or tap the mic: the wave should jump. Press Enter to finish.\n")
+    with source.recorder(samplerate=sample_rate, channels=1) as rec:
+        while not stop.is_set():
+            chunk = np.asarray(rec.record(numframes=sample_rate // 4), dtype="float32").reshape(-1)
+            meter.update(to_db(chunk), time.time() - started)
+    meter.say()
+
+
 def unique_path(folder: Path, stem: str) -> Path:
     p = folder / f"{stem}.flac"
     n = 2
@@ -140,6 +202,7 @@ def unique_path(folder: Path, stem: str) -> Path:
 def main():
     ap = argparse.ArgumentParser(description="Record the class that is on now.")
     ap.add_argument("--online-only", action="store_true", help="ignore physical classes, always record speaker output")
+    ap.add_argument("--test", action="store_true", help="show the live mic wave without recording")
     ap.add_argument("--mics", action="store_true", help="list microphones and show which one would be used")
     args = ap.parse_args()
 
@@ -164,6 +227,10 @@ def main():
         print(f"\nDefault: {sc.default_microphone().name}")
         print(f"Would use for physical classes: {pick_mic(sc, preferred).name}")
         input("\nPress Enter to close.")
+        return
+
+    if args.test:
+        mic_test(pick_mic(sc, preferred), np, sample_rate)
         return
 
     now = datetime.now()
@@ -209,10 +276,18 @@ def main():
     window = rc.get("silent_window_online", 300) if cls["mode"] == "Online" else rc.get("silent_window", 30)
     levels, silent_secs, warned, checked = [], 0, False, False
     alert(f"Recording {cls['code']}", on=False)
+    meter = LiveMeter()
+    say = meter.say
+    quarter = sample_rate // 4
     with sf.SoundFile(out, "w", samplerate=sample_rate, channels=1, format="FLAC") as f,          source.recorder(samplerate=sample_rate, channels=1) as rec:
         last_print = 0
         while not stop.is_set() and datetime.now() < stop_at:
-            chunk = np.asarray(rec.record(numframes=sample_rate), dtype="float32").reshape(-1)  # 1 s
+            parts = []
+            for _ in range(4):                                  # 4 x 0.25 s = 1 s
+                part = np.asarray(rec.record(numframes=quarter), dtype="float32").reshape(-1)
+                parts.append(part)
+                meter.update(to_db(part), time.time() - started)
+            chunk = np.concatenate(parts)
             f.write(chunk)
             levels.append(to_db(chunk))
             elapsed = time.time() - started
@@ -221,33 +296,34 @@ def main():
                 checked = True
                 loud = sorted(levels)[-2]
                 if loud < silent_db and cls["mode"] == "Online":
-                    print(f"  Sound check: nothing playing yet (fine if the class hasn't started). Warns after {window // 60} min.", flush=True)
+                    say(f"  Sound check: nothing playing yet (fine if the class hasn't started). Warns after {window // 60} min.")
                 elif loud < silent_db:
-                    print(f"  MIC CHECK: hearing almost nothing ({loud:.0f} dB). Is the mic plugged in / unmuted?", flush=True)
+                    say(f"  MIC CHECK: hearing almost nothing ({loud:.0f} dB). Is the mic plugged in / unmuted?")
                 else:
-                    print(f"  Mic check: OK, hearing sound ({loud:.0f} dB)", flush=True)
+                    say(f"  Mic check: OK, hearing sound ({loud:.0f} dB)")
 
             silent = is_silent(levels, window, silent_db)
             silent_secs += silent
             if silent and (not warned or elapsed - warned >= 60):
                 dropouts = sum(lv <= -99 for lv in levels[-window:])
-                print("\n  !!! SILENT INPUT: NOTHING IS BEING RECORDED !!!")
+                say("\n  !!! SILENT INPUT: NOTHING IS BEING RECORDED !!!")
                 if dropouts >= window // 3:
-                    print(f"  !!! The input keeps cutting out ({dropouts} of the last {window}s were dead air).")
-                    print("  !!! Likely a loose plug: push the mic jack in fully, don't move the cable.\n", flush=True)
+                    say(f"  !!! The input keeps cutting out ({dropouts} of the last {window}s were dead air).")
+                    say("  !!! Likely a loose plug: push the mic jack in fully, don't move the cable.\n")
                 else:
-                    print(f"  !!! Level {levels[-1]:.0f} dB for {window}s. Check: mic plugged into the right jack,")
-                    print("  !!! not muted (Settings > System > Sound > Input), right device. Then restart.\n", flush=True)
+                    say(f"  !!! Level {levels[-1]:.0f} dB for {window}s. Check: mic plugged into the right jack,")
+                    say("  !!! not muted (Settings > System > Sound > Input), right device. Then restart.\n")
                 alert(f"!! MIC SILENT {cls['code']} !!", on=True, beep=beep)
                 warned = elapsed
             elif warned and not silent and levels[-1] >= silent_db:
-                print("  Sound is coming through again.", flush=True)
+                say("  Sound is coming through again.")
                 alert(f"Recording {cls['code']}", on=False)
                 warned = False
 
             if elapsed - last_print >= 60:
-                print(f"  ...{int(elapsed // 60)} min recorded  (level {max(levels[-60:]):.0f} dB)", flush=True)
+                say(f"  ...{int(elapsed // 60)} min recorded  (level {max(levels[-60:]):.0f} dB)")
                 last_print = elapsed
+    say()
 
     mins = (time.time() - started) / 60
     meta = {
