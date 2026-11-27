@@ -13,7 +13,7 @@ import pipeline_config  # noqa: E402
 import vocab  # noqa: E402
 from lecture_transcriber import (NO_META_WAIT, collapse_repeats, find_ready_files,  # noqa: E402
                                  group_paragraphs, render_markdown)
-from record_class import current_class  # noqa: E402
+from record_class import current_class, is_silent, to_db  # noqa: E402
 
 CFG = pipeline_config.load(ROOT / "config.example.json")
 MON = datetime(2026, 11, 23)  # a Monday
@@ -153,3 +153,16 @@ def test_noise_segments_dropped():
     segs = [SimpleNamespace(start=0, end=5, text=" . . . ."),
             SimpleNamespace(start=5, end=10, text=" Hello class.")]
     assert group_paragraphs(segs, 60) == [("0:00:05", "Hello class.")]
+
+
+def test_silence_alarm():
+    import numpy as np
+    assert to_db(np.zeros(16000)) == -100.0
+    assert round(to_db(np.full(16000, 0.1))) == -20
+    speech = [-35.0] * 30
+    dead = [-66.0] * 30                        # a wrong/muted input, as on 27 Nov
+    assert not is_silent(dead[:29], 30)        # not a full window yet
+    assert is_silent(dead, 30)
+    assert not is_silent(speech, 30)
+    assert is_silent(dead[:27] + [-20.0] * 3, 30)       # a few bumps don't hide a dead mic
+    assert not is_silent(dead[:20] + speech[:10], 30)   # someone talking for 10 s is enough

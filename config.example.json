@@ -23,7 +23,11 @@
     "preferred_mics": ["external", "headset", "usb"],
     "sample_rate": 16000,
     "early_minutes": 20,
-    "auto_stop_after_end": 15
+    "auto_stop_after_end": 15,
+    "silent_db": -58,
+    "silent_window": 30,
+    "silent_window_online": 300,
+    "beep_on_silence": false
   },
 
   "transcriber": {

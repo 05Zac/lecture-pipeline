@@ -26,6 +26,7 @@ Record your classes on a laptop, transcribe them for free on your desktop's GPU,
 - Stops when you press Enter, 15 minutes after the class ends, or when the next back-to-back class starts. Each class gets its own file.
 - Writes a `.json` sidecar with the course, session, mode, date and length.
 - `--online-only` mode is for a desktop that only joins online classes.
+- Warns you if nothing is being recorded. Ten seconds in it says whether it can hear sound. If a physical class stays near silent for 30 seconds (5 minutes for online), it prints a warning, changes the window title and flashes the taskbar button, and it says whether the plug looks loose. The per-minute progress line shows the level: speech in a classroom is about -45 to -25 dB, and a dead input is -65 or lower.
 
 **Transcriber (`lecture_transcriber.py`)**
 - Polls the recordings folder and waits until the recorder's `.json` has arrived and the audio has finished syncing. A sync tool uploads a recording that is still growing in bursts, so a stable size alone isn't proof the recording is done. Audio files you add by hand, with no `.json`, are picked up once they've been unchanged for 15 minutes.
